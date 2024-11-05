@@ -32,7 +32,17 @@ function [ev,mult] = heltalsev(A,tol)
         fprintf('Över Tolerans\n');
     end
 
+function J = jordanmatris(A,tol)
 
+    if nargin < 2
+        tol = favorittolerans; 
+    end
+    
+    
+
+
+    [ev,mult] = heltalsev(A,tol);
+    end
 
 
 % [ev, mult] = heltalsev(M)
