@@ -102,7 +102,7 @@ def ptoNMatrix(mult):
 # Returns: None if the eigenvalues are non-integer, and the eigenvalues ev, and their multiplicities otherwise.
 
 def heltalsEV(A, tol = None):
-    favTol = 1e-7
+    favTol = 1e-3
 
     if(tol == None):
         tol = favTol
