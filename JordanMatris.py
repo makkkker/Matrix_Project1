@@ -1,42 +1,72 @@
 import numpy as np
 from scipy.linalg import eig, null_space
 
-def jordanMatrix(A, tol= None):
-    ev, mult = heltalsEV(A, tol)
-    diagEls = []
+# The code below computes the Jordan form for a given matrix with integer eigenvalues
 
-    if(mult[0] == -1):
-        return "Non integer eigenvalues"
+# We make use of three help functions: ptoNMatrix, kernelDim, blockSizes.
+# These are used to increase the readablility of the jordanMatrix function
+
+# The jordanmatrix function works by creating a matrix with the correct main diagonal and ones on the off-diagonal, and then removing 
+# ones "north east" of the corner between where one jordan block ends and another begins
+
+
+# Computes the Jordan normal form for a matrix with integer eigenvalues
+# Inputs: A square matrix A, and optionally a tolerance tol
+# Returns: The Jordan normal form of the matrix A if A has integer eigenvalues, and None if A has non-integer eigenvalues
+
+def jordanMatrix(A, tol= None):
+    ev, mult = heltalsEV(A, tol) # Checks for and computes integer eigenvalues and their multiplicities
+    
+
+    if(mult[0] == -1): 
+        return None
+    
+    # Computes a vector containing the diagonal elements in the jordan normal form
+    diagEls = [] 
 
     for i in range(0, len(ev)):
         for j in range(0, mult[i]):
             diagEls.append(ev[i])
+
+    # Initiates a matrix J with the correct main diagonal and ones on the off-diagonal
 
     J = np.diag(diagEls)
 
     for k in range(1,len(diagEls)):
         J[k-1][k] = 1
     
+    # Calculates the sequence of block sizes in the Jordan form of A
     blockSqns = []
     for i in range(0, len(ev)):
-        blockSize = blockSizes(A, ev[i], mult[i])
+        blockSize = blockSizes(A, ev[i], mult[i]) # computes the number of blocks with size < mult[i] for the eigenvalue ev[i]
         for j in range(0, mult[i]):
             if(blockSize[j]!=0):
                 for k in range(0, int(blockSize[j])):
-                    blockSqns.append(j+1)
+                    blockSqns.append(j+1) 
+
+    # Removes ones on the off-diagonal "northeast" of the corner between blocks, where they were incorrectly inserted previously
     
     rowcounter = 0
     for i in range(0, len(blockSqns)-1):
         rowcounter += blockSqns[i]
         J[rowcounter-1][rowcounter] = 0
+
     return np.real(J)
 
+
+# Computes the number of blocks of sizes less than or equal to mult for a given eigenvalue eigV of the matrix A
+# Input: A square matrix A, an eigenvalue eigV of A, and the multiplicity mult of said eigenvalue
+# Returns: An array containing the number of blocks of size i+1 at position i.
 
 def blockSizes(A, eigV, mult):
     kerDim = np.transpose(kernelDim(A, eigV, mult))
     ptoMat = ptoNMatrix(mult)
     BS = np.matmul(ptoMat, kerDim)
     return BS
+
+# Computes the dimensions p_i = dim( ker(A - eigV*I)^i ) for i less than or equal to mult
+# Input: A square matrix A, an eigenvalue eigV of A, and the multiplicity mult of said eigenvalue
+# returns: An array containing the p_i:s
 
 def kernelDim(A, eigV, mult):
     KD = np.zeros(mult)
@@ -47,6 +77,17 @@ def kernelDim(A, eigV, mult):
         KD[i] = len(A) - rank
     return KD
 
+
+# Computes the matrix NtoPmat mapping the numbers n_k of blocks of size k to the
+# dimension of the kernel of (A-lambda*I), where lambda is an 
+# eigenvalue of A and inverts it to the matrix PtoNmatrix.
+
+# See theorem 7.9 in Holst, Ufnarovski for clarification and proof of
+# invertibility
+
+# Input: The maximal size mult of a block (or equivalently the multiplicity of an eigenvalue)
+# Returns: The matrix mapping dimensions of kernels (A - eigV*I)^i to the number of blocks of a given size
+
 def ptoNMatrix(mult):
     ntopmat = np.zeros((mult, mult))
 
@@ -55,6 +96,10 @@ def ptoNMatrix(mult):
             ntopmat[i, j] = np.min([i+1, j+1])
     return np.linalg.inv(ntopmat)
 
+
+# Checks whether the eigenvalues of a given matrix A are sufficiently close to integers, and computes these and their multiplicities¨
+# Input: A matrix A and a tolerance tol 
+# Returns: None if the eigenvalues are non-integer, and the eigenvalues ev, and their multiplicities otherwise.
 
 def heltalsEV(A, tol = None):
     favTol = 1e-7
@@ -75,21 +120,23 @@ def heltalsEV(A, tol = None):
 
 
 
-from numpy.polynomial.polynomial import Polynomial
-def test_matrix(n):
-    """
-    Generates a specific test matrix based on the input integer n.
-    These matrices are meant to be used as test cases for Jordan form calculations.
-    
-    Parameters:
-    n (int): An integer specifying which matrix to generate.
+# These are test cases:
 
-    Returns:
-    numpy.ndarray: The generated matrix.
+""" from numpy.polynomial.polynomial import Polynomial
+def test_matrix(n):
     
-    Raises:
-    ValueError: If n is not an integer between 0 and 6.
-    """
+    #Generates a specific test matrix based on the input integer n.
+    #These matrices are meant to be used as test cases for Jordan form calculations.
+    
+    #Parameters:
+    #n (int): An integer specifying which matrix to generate.
+
+    #Returns:
+    #numpy.ndarray: The generated matrix.
+    
+    #Raises:
+    #ValueError: If n is not an integer between 0 and 6.
+    
     if n == 0:
         # Zero matrix 3x3
         M = np.zeros((3, 3))
@@ -126,6 +173,8 @@ def test_matrix(n):
 
     return M
 
-M = test_matrix()
+M = test_matrix(1)
 
-print(jordanMatrix(M))
+print(jordanMatrix(M)) """
+
+
